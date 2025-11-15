@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Wrapping Paper Cutter</title>
+<style>
+  :root { font-family: system-ui, -apple-system, Roboto, Arial, sans-serif; }
+  body { margin: 0; padding: 16px; background:#f7f7f9; color:#111; }
+  .card { max-width: 560px; margin: 0 auto; background:#fff; padding:16px; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,.06); }
+  h1 { font-size: 1.25rem; margin: 0 0 12px; }
+  label { display:block; font-size:.9rem; margin:12px 0 6px; }
+  input[type=number] { width: 100%; padding:10px 12px; border:1px solid #ccc; border-radius:10px; font-size:1rem; }
+  .row { display:flex; gap:10px; }
+  .row > div { flex:1; }
+  button { width:100%; padding:12px; margin-top:14px; border:0; border-radius:10px; background:#0046ff; color:#fff; font-weight:600; font-size:1rem; }
+  .out { margin-top:16px; padding:12px; border:1px dashed #c8c8d0; border-radius:10px; background:#fbfbfe; }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  small { color:#555; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>Wrapping Paper Cutter</h1>
+    <p>Enter box size in inches (decimals OK). Formulas:<br>
+      <small>Wrap = (W + H) × 2 + 0.75 (overlap)</small><br>
+      <small>End  = L + 2 × (H − 0.5) + cushion</small>
+    </p>
+
+    <div class="row">
+      <div>
+        <label>Length (L)</label>
+        <input id="L" type="number" step="0.01" placeholder="e.g., 11" inputmode="decimal">
+      </div>
+      <div>
+        <label>Width (W)</label>
+        <input id="W" type="number" step="0.01" placeholder="e.g., 8.5" inputmode="decimal">
+      </div>
+      <div>
+        <label>Height (H)</label>
+        <input id="H" type="number" step="0.01" placeholder="e.g., 5.5" inputmode="decimal">
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Cushion (0–0.50)</label>
+        <input id="cushion" type="number" step="0.01" value="0.25" inputmode="decimal">
+      </div>
+      <div>
+        <label>Trim (fixed)</label>
+        <input id="trim" type="number" step="0.01" value="0.50" disabled>
+      </div>
+    </div>
+
+    <button id="go">Calculate</button>
+
+    <div id="out" class="out" hidden>
+      <div class="mono" id="results"></div>
+      <div id="tips" style="margin-top:10px;">
+        <small>
+          Target overhang per end ≈ (End − L) / 2. For crisp corners, aim near H − ¼″ (adjust cushion as needed).
+        </small>
+      </div>
+    </div>
+  </div>
+
+<script>
+function fmt(n){ return (Math.round(n*100)/100).toFixed(2); }
+
+document.getElementById('go').addEventListener('click', () => {
+  const L = parseFloat(document.getElementById('L').value);
+  const W = parseFloat(document.getElementById('W').value);
+  const H = parseFloat(document.getElementById('H').value);
+  const cushion = parseFloat(document.getElementById('cushion').value || '0.25');
+  const trim = 0.50;
+
+  if (![L,W,H].every(x => Number.isFinite(x) && x>0)) {
+    alert('Please enter positive numbers for L, W, and H.');
+    return;
+  }
+  if (!(cushion >= 0 && cushion <= 0.5)) {
+    alert('Cushion should be between 0 and 0.50 inches.');
+    return;
+  }
+
+  const wrapDir = (W + H) * 2 + 0.75;        // (W + H)*2 + overlap
+  const endDir  = L + 2 * (H - trim) + cushion;
+  const overEnd = (endDir - L) / 2;
+
+  const lines = [
+    `Box:             L = ${fmt(L)}"   W = ${fmt(W)}"   H = ${fmt(H)}"`,
+    `Inputs:          trim = ${fmt(trim)}"   cushion = ${fmt(cushion)}"`,
+    ``,
+    `Cut size (paper rectangle):`,
+    `  Wrap direction (around width):  ${fmt(wrapDir)}"`,
+    `  End direction:                   ${fmt(endDir)}"`,
+    ``,
+    `Derived:`,
+    `  Overhang per end:                ${fmt(overEnd)}"`
+  ];
+
+  const out = document.getElementById('out');
+  document.getElementById('results').textContent = lines.join('\n');
+  out.hidden = false;
+});
+</script>
+</body>
+</html>
